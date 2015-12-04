@@ -11,15 +11,25 @@ export default class InMemoryTargz {
     this.fileParsingPromise = Promise.resolve();
   }
 
-  static create(pathToInitialTargz) {
+  /**
+   * Factory
+   * @param [pathOrStreamOfInitialTargz] optional initial file
+   * @returns {InMemoryTargz}
+   */
+  static create(pathOrStreamOfInitialTargz) {
     const inMemoryTargz = new InMemoryTargz();
 
-    if (pathToInitialTargz) {
-      inMemoryTargz.loadTargz(pathToInitialTargz);
+    if (pathOrStreamOfInitialTargz) {
+      inMemoryTargz.loadTargz(pathOrStreamOfInitialTargz);
     }
     return inMemoryTargz;
   }
 
+  /**
+   * Loads a new file in memory, all future request for files will be paused while the buffer is not ready
+   * @param pathToTargzOrStream path or stream to load
+   * @returns {Promise} A promise of all the files in the tar.gz
+   */
   loadTargz(pathToTargzOrStream) {
     this.fileParsingPromise = new Promise((resolve, reject) => {
       // Streams
@@ -51,10 +61,18 @@ export default class InMemoryTargz {
     return this.fileParsingPromise;
   }
 
+  /**
+   * Return the list of files loaded in the buffer
+   */
   getFilesList() {
     return this.fileParsingPromise.map((tarFile) => tarFile.path);
   }
 
+  /**
+   * Return the buffer of the file, if it exists. If a tar.gz is being loaded, will wait for it
+   * @param fileName the full name of the file, including all parents folder in the tar.gz
+   * @returns {Promise} A promise resolving with a buffer of the file content, and rejecting with 'ENOENT' error if no file.
+   */
   getFile(fileName) {
     return this.fileParsingPromise
       .then(function filesHandler(tarFiles) {
