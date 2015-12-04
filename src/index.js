@@ -1,19 +1,29 @@
 'use strict';
 
 import Promise from 'bluebird';
+import stream from 'stream';
 import fs from 'fs';
 import targz from 'tar.gz';
 import find from 'lodash/collection/find';
 
-class InMemoryTargz {
+export default class InMemoryTargz {
   constructor() {
     this.fileParsingPromise = Promise.resolve();
   }
 
-  loadTargz(pathToTargz) {
+  static create(pathToInitialTargz) {
+    const inMemoryTargz = new InMemoryTargz();
+
+    if (pathToInitialTargz) {
+      inMemoryTargz.loadTargz(pathToInitialTargz);
+    }
+    return inMemoryTargz;
+  }
+
+  loadTargz(pathToTargzOrStream) {
     this.fileParsingPromise = new Promise((resolve, reject) => {
       // Streams
-      const targzReadStream = fs.createReadStream(pathToTargz);
+      const targzReadStream = pathToTargzOrStream instanceof stream.Readable ? pathToTargzOrStream : fs.createReadStream(pathToTargzOrStream);
       const parseStream = targz().createParseStream();
 
       const tarFiles = [];
@@ -60,13 +70,4 @@ class InMemoryTargz {
         throw error;
       });
   }
-}
-
-export default function(pathToInitialTargz) {
-  const inMemoryTargz = new InMemoryTargz();
-
-  if (pathToInitialTargz) {
-    return inMemoryTargz.loadTargz(pathToInitialTargz).thenReturn(inMemoryTargz);
-  }
-  return Promise.resolve(inMemoryTargz);
 }
