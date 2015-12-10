@@ -3,6 +3,7 @@
 import Promise from 'bluebird';
 import stream from 'stream';
 import fs from 'fs';
+import path from 'path';
 import targz from 'tar.gz';
 import find from 'lodash/collection/find';
 
@@ -47,6 +48,8 @@ export default class InMemoryTargz {
           });
           entry.on('end', () => {
             entry.buffer = Buffer.concat(bufferChuncks);
+            // Normalize entry path (removes potential "./" at the start of path)
+            entry.path = path.normalize(entry.path);
             tarFiles.push(entry);
           });
         }
