@@ -1,4 +1,4 @@
-# in-memory-targz
+# In Memory TarGz
 Allow tar.gz files to be loaded in memory, for later use (ex: served by a web server)
 
 ## Exemple
